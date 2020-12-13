@@ -30,6 +30,7 @@ def setwall():
         ctypes.windll.user32.SystemParametersInfoW(
             SPI, 0, wf + 'Night.jpg', 0)
 
+# testing git
 
 def thread_loop():
     while True:
