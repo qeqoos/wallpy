@@ -26,6 +26,7 @@ def setwall():
         if datetime.today().hour in hour:
             ctypes.windll.user32.SystemParametersInfoW(SPI, 0, wf + wallpaper, 0)
 
+# deleted comment
 
 def thread_loop():
     while True:
