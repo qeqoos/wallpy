@@ -10,25 +10,21 @@ from PySide2 import QtWidgets, QtGui
 SPI = 20
 wf = "C:/Users/foxth/Desktop/балдеж/Wallpapers/"
 
+Morning = 'Morning.jpg'
+Day = 'Day.jpg'
+Evening = 'Evening.jpg'
+Night = 'Night.jpg'
+
+date_periods = {Morning: [i for i in range(6, 12)],
+                Day: [i for i in range(12, 17)],
+                Evening: [i for i in range(17, 21)],
+                Night: [i for i in range(0, 6)]}
+
+
 def setwall():
-    if datetime.today().hour in range(7, 12):
-        ctypes.windll.user32.SystemParametersInfoW(
-            SPI, 0, wf + 'Morning.jpg', 0)
-    if datetime.today().hour in range(12, 16):
-        ctypes.windll.user32.SystemParametersInfoW(
-            SPI, 0, wf + 'Day.jpg', 0)
-    if datetime.today().hour in range(16, 19):
-        ctypes.windll.user32.SystemParametersInfoW(
-            SPI, 0, wf + 'Evening2.jpg', 0)
-    if datetime.today().hour in range(19, 22):
-        ctypes.windll.user32.SystemParametersInfoW(
-            SPI, 0, wf + 'Evening.jpg', 0)
-    if datetime.today().hour in range(22, 24):
-        ctypes.windll.user32.SystemParametersInfoW(
-            SPI, 0, wf + 'Night.jpg', 0)
-    if datetime.today().hour in range(0, 7):
-        ctypes.windll.user32.SystemParametersInfoW(
-            SPI, 0, wf + 'Night.jpg', 0)
+    for wallpaper, hour in date_periods.items():
+        if datetime.today().hour in hour:
+            ctypes.windll.user32.SystemParametersInfoW(SPI, 0, wf + wallpaper, 0)
 
 
 def thread_loop():
