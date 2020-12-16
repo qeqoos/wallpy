@@ -7,24 +7,27 @@ from threading import Thread
 from datetime import datetime
 from PySide2 import QtWidgets, QtGui
 
+
+config_object = ConfigParser()
+config_object.read("config.ini")
+
+
 SPI = 20
 wf = "C:/Users/foxth/Desktop/балдеж/Wallpapers/"
 
-Morning = 'Morning.jpg'
-Day = 'Day.jpg'
-Evening = 'Evening.jpg'
-Night = 'Night.jpg'
+wallpapers = config_object['WALLPAPERS']
 
-date_periods = {Morning: [i for i in range(6, 12)],
-                Day: [i for i in range(12, 17)],
-                Evening: [i for i in range(17, 21)],
-                Night: [i for i in range(0, 6)]}
+date_periods = {wallpapers['morning']: [i for i in range(6, 12)],
+                wallpapers['day']: [i for i in range(12, 17)],
+                wallpapers['evening']: [i for i in range(17, 21)],
+                wallpapers['night']: [i for i in range(0, 6)]}
 
 
 def setwall():
     for wallpaper, hour in date_periods.items():
         if datetime.today().hour in hour:
-            ctypes.windll.user32.SystemParametersInfoW(SPI, 0, wf + wallpaper, 0)
+            ctypes.windll.user32.SystemParametersInfoW(SPI, 0, wallpaper, 0)
+
 
 def thread_loop():
     while True:
