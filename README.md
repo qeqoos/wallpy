@@ -1,4 +1,4 @@
 # wallpy
 Python program for changing wallpapers.
 
-For the initial launch, run wallpy_config first.
+For the initial launch, run config_wallpy first.
