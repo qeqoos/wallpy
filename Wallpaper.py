@@ -12,13 +12,12 @@ config_object.read("config.ini")
 
 
 SPI = 20
-wf = "C:/Users/foxth/Desktop/балдеж/Wallpapers/"
 
 wallpapers = config_object['WALLPAPERS']
 
-date_periods = {wallpapers['morning']: [i for i in range(6, 12)],
+date_periods = {wallpapers['morning']: [i for i in range(7, 12)],
                 wallpapers['day']: [i for i in range(12, 17)],
-                wallpapers['evening']: [i for i in range(17, 21)],
+                wallpapers['evening']: [i for i in range(17, 22)],
                 wallpapers['night']: [i for i in range(0, 6)]}
 
 
@@ -51,7 +50,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 def tray():
     app = QtWidgets.QApplication(sys.argv)
     w = QtWidgets.QWidget()
-    tray_icon = SystemTrayIcon(QtGui.QIcon(wf + 'tray.ico'), w)
+    tray_icon = SystemTrayIcon(QtGui.QIcon('tray.ico'), w)
     tray_icon.show()
     sys.exit(app.exec_())
 
