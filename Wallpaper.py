@@ -7,7 +7,6 @@ from threading import Thread
 from datetime import datetime
 from PySide2 import QtWidgets, QtGui
 
-
 config_object = ConfigParser()
 config_object.read("config.ini")
 
