@@ -14,17 +14,30 @@ config_object.read("config.ini")
 SPI = 20
 
 wallpapers = config_object['WALLPAPERS']
+timestamps = config_object['TIMESTAMPS']
 
-date_periods = {wallpapers['morning']: [i for i in range(7, 12)],
-                wallpapers['day']: [i for i in range(12, 17)],
-                wallpapers['evening']: [i for i in range(17, 22)],
-                wallpapers['night']: [i for i in range(0, 6)]}
+period_list = list(wallpapers.keys())
+
+
+date_periods = {}
+
+for period in period_list:
+    formatted_timestamp = timestamps[period].split('-')
+    date_periods.update({wallpapers[period]: formatted_timestamp})
 
 
 def setwall():
     for wallpaper, hour in date_periods.items():
-        if datetime.today().hour in hour:
-            ctypes.windll.user32.SystemParametersInfoW(SPI, 0, wallpaper, 0)
+        start = int(hour[0])
+        fin = int(hour[1])
+        if start < fin:
+            if datetime.today().hour in range(start, fin):
+                ctypes.windll.user32.SystemParametersInfoW(
+                    SPI, 0, wallpaper, 0)
+        elif start > fin:
+            if datetime.today().hour in range(start, 24) or datetime.today().second in range(0, fin):
+                ctypes.windll.user32.SystemParametersInfoW(
+                    SPI, 0, wallpaper, 0)
 
 
 def thread_loop():

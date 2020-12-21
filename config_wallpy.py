@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 from tkinter import *
 from tkinter import filedialog as fd
+from tkinter import messagebox as mb
 from tkinter import simpledialog
 import sys
 
@@ -22,8 +23,8 @@ root.geometry(f'{w}x{h}+{x}+{y}')
 root.title('Configuration window')
 root.iconbitmap('tray.ico')
 
-
 date_periods = list(config_object['WALLPAPERS'].keys())
+timestamp_periods = config_object['TIMESTAMPS']
 
 row = 1
 apply_but = Button(root, text='Apply', width=25)
@@ -37,13 +38,12 @@ but_dict = {}
 dest_dict = {}
 add_but = 0
 
-timestamp = 7
 
-
-def display_periods(timestamp, row):
+def display_periods(row):
     global add_but
     for period in date_periods:
-        time_range = f'{period}, from {timestamp} to {(timestamp+5)%24}:'
+        formatted_timestamp = timestamp_periods[period].split('-')
+        time_range = f'{period}, from {formatted_timestamp[0]} to {formatted_timestamp[1]}:'
         label_dict[period] = Label(text=time_range)
         label_dict[period].grid(column=1, row=row, padx=20, pady=10, sticky=W)
 
@@ -64,7 +64,6 @@ def display_periods(timestamp, row):
                                row=row + 1, padx=0, pady=0, sticky=E)
 
         row += 2
-        timestamp = (timestamp + 5) % 24
 
     add_but = Button(root, text='Add new', width=10, command=add_)
     add_but.bind('<Button-1>', add_)
@@ -86,20 +85,52 @@ def add_():
     global row
     period_name = simpledialog.askstring(
         title="Configuration", prompt="Name of your period:")
+    period_from = simpledialog.askstring(
+        title="Time interval", prompt="From hour:")
+    period_to = simpledialog.askstring(
+        title="Time interval", prompt="To hour:")
+
+    if int(period_from) in range(0, 24) and int(period_to) in range(0, 24):
+        timestamp = f'{period_from}-{period_to}'
+    else:
+        mb.showerror('Error', 'Invalid timestamp values.')
+
+    if int(period_from) > int(period_to):
+        local_time_range = [i for i in range(
+            int(period_from), 24)] + [i for i in range(0, int(period_to))]
+    elif int(period_from) < int(period_to):
+        local_time_range = [i for i in range(int(period_from), int(period_to))]
+
+    pass_ = True
     for period in date_periods:
-        label_dict[period].destroy()
-        entry_dict[period].destroy()
-        but_dict[period].destroy()
-        dest_dict[period].destroy()
-    add_but.destroy()
-    date_periods.append(period_name)
-    display_periods(timestamp, row)
+        formatted_timestamp = timestamp_periods[period].split('-')
+        for i in local_time_range:
+            if i in range(int(formatted_timestamp[0]), int(formatted_timestamp[1])):
+                mb.showerror(
+                    'Error', f'Timestamps are overlapping with {period}')
+                pass_ = False
+                break
+            else:
+                pass
+
+    if pass_:
+        for period in date_periods:
+            label_dict[period].destroy()
+            entry_dict[period].destroy()
+            but_dict[period].destroy()
+            dest_dict[period].destroy()
+
+        add_but.destroy()
+        date_periods.append(period_name)
+        timestamp_periods.update({period_name: timestamp})
+        display_periods(row)
 
 
 def destroy_(r):
     for period in date_periods:
         if r == entry_dict[period].grid_info()['row']:
             date_periods.remove(period)
+            del timestamp_periods[period]
             label_dict[period].destroy()
             entry_dict[period].destroy()
             but_dict[period].destroy()
@@ -110,6 +141,7 @@ def apply_(event):
     config_object['WALLPAPERS'] = {}
     for period in date_periods:
         config_object['WALLPAPERS'].update({period: entry_dict[period].get()})
+        config_object['TIMESTAMPS']
 
     with open('config.ini', 'w') as conf:
         config_object.write(conf)
@@ -117,6 +149,6 @@ def apply_(event):
 
 apply_but.bind('<Button-1>', apply_)
 
-display_periods(timestamp, row)
+display_periods(row)
 
 root.mainloop()
