@@ -35,7 +35,7 @@ def setwall():
                 ctypes.windll.user32.SystemParametersInfoW(
                     SPI, 0, wallpaper, 0)
         elif start > fin:
-            if datetime.today().hour in range(start, 24) or datetime.today().second in range(0, fin):
+            if datetime.today().hour in range(start, 24) or datetime.today().hour in range(0, fin):
                 ctypes.windll.user32.SystemParametersInfoW(
                     SPI, 0, wallpaper, 0)
 
