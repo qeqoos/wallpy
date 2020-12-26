@@ -4,6 +4,8 @@ from tkinter import filedialog as fd
 from tkinter import messagebox as mb
 from tkinter import simpledialog
 import sys
+import win32com.client
+import os
 
 config_object = ConfigParser()
 config_object.read("config.ini")
@@ -27,9 +29,11 @@ date_periods = list(config_object['WALLPAPERS'].keys())
 timestamp_periods = config_object['TIMESTAMPS']
 
 row = 1
-apply_but = Button(root, text='Apply', width=25)
+apply_but = Button(root, text='Apply', width=20)
+create_task_but = Button(root, text='Create logon task', width=20)
 exit_but = Button(root, text='Exit', command=sys.exit, width=10)
-apply_but.grid(column=1, row=row - 1, padx=120, pady=20, sticky=E)
+apply_but.grid(column=1, row=row - 1, padx=20, pady=20, sticky=W)
+create_task_but.grid(column=1, row=row - 1, padx=20, pady=20, sticky=E)
 exit_but.grid(column=2, row=row - 1, padx=20, pady=20, sticky=E)
 
 label_dict = {}
@@ -148,6 +152,67 @@ def apply_(event):
 
 
 apply_but.bind('<Button-1>', apply_)
+
+
+def create_task(event):
+    computer_name = ""  # leave all blank for current computer, current user
+    computer_username = ""
+    computer_userdomain = ""
+    computer_password = ""
+
+    action_id = "WallpyLogonTask"
+    action_workdir = os.path.dirname(os.path.abspath(__file__))
+
+    action_path = action_workdir + r"\Wallpaper.py"
+    action_arguments = r''
+    author = "config_wallpy"
+    description = "Run Wallpaper.exe when the current user logs on"
+    task_id = "WallpyLogonTask"
+    task_hidden = False
+    username = ""
+    password = ""
+
+    TASK_TRIGGER_LOGON = 9
+    TASK_CREATE_OR_UPDATE = 6
+    TASK_ACTION_EXEC = 0
+    TASK_LOGON_INTERACTIVE_TOKEN = 3
+
+    scheduler = win32com.client.Dispatch("Schedule.Service")
+    scheduler.Connect(computer_name or None, computer_username or None,
+                      computer_userdomain or None, computer_password or None)
+    rootFolder = scheduler.GetFolder("\\")
+
+    taskDef = scheduler.NewTask(0)
+    colTriggers = taskDef.Triggers
+
+    trigger = colTriggers.Create(TASK_TRIGGER_LOGON)
+    trigger.Id = "LogonTriggerId"
+    trigger.UserId = os.environ.get('USERNAME')
+
+    colActions = taskDef.Actions
+    action = colActions.Create(TASK_ACTION_EXEC)
+    action.ID = action_id
+    action.Path = action_path
+    action.WorkingDirectory = action_workdir
+    action.Arguments = action_arguments
+
+    info = taskDef.RegistrationInfo
+    info.Author = author
+    info.Description = description
+
+    settings = taskDef.Settings
+    settings.Hidden = task_hidden
+
+    result = rootFolder.RegisterTaskDefinition(
+        task_id, taskDef, TASK_CREATE_OR_UPDATE, "", "", TASK_LOGON_INTERACTIVE_TOKEN)
+
+    # run the task once
+    task = rootFolder.GetTask(task_id)
+    task.Enabled = True
+    runningTask = task.Run("")
+
+
+create_task_but.bind('<Button-1>', create_task)
 
 display_periods(row)
 
