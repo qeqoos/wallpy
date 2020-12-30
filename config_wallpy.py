@@ -13,8 +13,8 @@ config_object.read("config.ini")
 
 root = Tk()
 
-w = 650
-h = 500
+w = int(config_object['WINDOW_PARAMS']['width'])
+h = int(config_object['WINDOW_PARAMS']['height'])
 ws = root.winfo_screenwidth()
 hs = root.winfo_screenheight()
 x = int((ws / 2) - (w / 2))
@@ -32,7 +32,7 @@ row = 1
 apply_but = Button(root, text='Apply', width=20)
 create_task_but = Button(root, text='Create logon task', width=20)
 exit_but = Button(root, text='Cancel', command=sys.exit, width=10)
-apply_but.grid(column=1, row=row - 1, padx=20, pady=20, sticky=W)
+apply_but.grid(column=0, row=row - 1, padx=20, pady=20, sticky=W)
 create_task_but.grid(column=1, row=row - 1, padx=20, pady=20, sticky=E)
 exit_but.grid(column=2, row=row - 1, padx=20, pady=20, sticky=E)
 
@@ -49,11 +49,11 @@ def display_periods(row):
         formatted_timestamp = timestamp_periods[period].split('-')
         time_range = f'{period}, from {formatted_timestamp[0]} to {formatted_timestamp[1]}:'
         label_dict[period] = Label(text=time_range)
-        label_dict[period].grid(column=1, row=row, padx=20, pady=10, sticky=W)
+        label_dict[period].grid(column=0, row=row, padx=20, pady=10, sticky=W)
 
         entry_dict[period] = Entry(root, width=50)
-        entry_dict[period].grid(column=1, row=row + 1,
-                                padx=20, pady=0, sticky=E)
+        entry_dict[period].grid(column=0, row=row + 1,
+                                padx=30, pady=0, sticky=E, columnspan=2)
         if period in config_object['WALLPAPERS']:
             entry_dict[period].insert(0, config_object['WALLPAPERS'][period])
 
@@ -139,7 +139,8 @@ def add_(event):
 
         add_but.destroy()
         date_periods.append(period_name)
-        timestamp_periods.update({period_name: timestamp}) # updates config file too
+        # updates config file too
+        timestamp_periods.update({period_name: timestamp})
         display_periods(row)
 
         h += 80
@@ -167,10 +168,16 @@ def apply_(event):
     for period in date_periods:
         config_object['WALLPAPERS'].update({period: entry_dict[period].get()})
 
+    config_object['WINDOW_PARAMS'] = {
+        'width': w,
+        'height': h
+    }
+
     with open('config.ini', 'w') as conf:
         config_object.write(conf)
 
-    mb.showwarning('Warning', 'Changes applied!\nExit wallpy through tray and \nrestart it with new configuration.')
+    mb.showwarning(
+        'Warning', 'Changes applied!\nExit wallpy through tray and \nrestart it with new configuration.')
 
 
 apply_but.bind('<Button-1>', apply_)
