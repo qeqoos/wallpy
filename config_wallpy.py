@@ -31,7 +31,7 @@ timestamp_periods = config_object['TIMESTAMPS']
 row = 1
 apply_but = Button(root, text='Apply', width=20)
 create_task_but = Button(root, text='Create logon task', width=20)
-exit_but = Button(root, text='Exit', command=sys.exit, width=10)
+exit_but = Button(root, text='Cancel', command=sys.exit, width=10)
 apply_but.grid(column=1, row=row - 1, padx=20, pady=20, sticky=W)
 create_task_but.grid(column=1, row=row - 1, padx=20, pady=20, sticky=E)
 exit_but.grid(column=2, row=row - 1, padx=20, pady=20, sticky=E)
@@ -85,16 +85,17 @@ def choose_(r):
             entry_dict[period].insert(0, path)
 
 
-def add_():
+def add_(event):
     global row
+    global h
     period_name = simpledialog.askstring(
         title="Configuration", prompt="Name of your period:")
     period_from = simpledialog.askstring(
-        title="Time interval", prompt="From hour:")
+        title="Time interval", prompt="From hour (digits):")
     period_to = simpledialog.askstring(
-        title="Time interval", prompt="To hour:")
+        title="Time interval", prompt="To hour (digits):")
 
-    if int(period_from) in range(0, 24) and int(period_to) in range(0, 24):
+    if int(period_from.replace(' ', '')) in range(0, 24) and int(period_to.replace(' ', '')) in range(0, 24):
         timestamp = f'{period_from}-{period_to}'
     else:
         mb.showerror('Error', 'Invalid timestamp values.')
@@ -108,14 +109,26 @@ def add_():
     pass_ = True
     for period in date_periods:
         formatted_timestamp = timestamp_periods[period].split('-')
+        start = int(formatted_timestamp[0])
+        fin = int(formatted_timestamp[1])
         for i in local_time_range:
-            if i in range(int(formatted_timestamp[0]), int(formatted_timestamp[1])):
+            if i in range(start, fin):
                 mb.showerror(
                     'Error', f'Timestamps are overlapping with {period}')
                 pass_ = False
                 break
+            elif start > fin:
+                if i in range(start, 24) or i in range(0, fin):
+                    mb.showerror(
+                        'Error', f'Timestamps are overlapping with {period}')
+                    pass_ = False
+                    break
             else:
                 pass
+
+    if period_name.replace(' ', '') in timestamp_periods.keys():
+        mb.showerror('Error', 'Perion with same name already exists.')
+        pass_ = False
 
     if pass_:
         for period in date_periods:
@@ -126,11 +139,15 @@ def add_():
 
         add_but.destroy()
         date_periods.append(period_name)
-        timestamp_periods.update({period_name: timestamp})
+        timestamp_periods.update({period_name: timestamp}) # updates config file too
         display_periods(row)
+
+        h += 80
+        root.geometry(f'{w}x{h}')
 
 
 def destroy_(r):
+    global h
     for period in date_periods:
         if r == entry_dict[period].grid_info()['row']:
             date_periods.remove(period)
@@ -140,53 +157,58 @@ def destroy_(r):
             but_dict[period].destroy()
             dest_dict[period].destroy()
 
+            h -= 80
+            root.geometry(f'{w}x{h}')
+
 
 def apply_(event):
     config_object['WALLPAPERS'] = {}
+
     for period in date_periods:
         config_object['WALLPAPERS'].update({period: entry_dict[period].get()})
-        config_object['TIMESTAMPS']
 
     with open('config.ini', 'w') as conf:
         config_object.write(conf)
+
+    mb.showwarning('Warning', 'Changes applied!\nExit wallpy through tray and \nrestart it with new configuration.')
 
 
 apply_but.bind('<Button-1>', apply_)
 
 
 def create_task(event):
-    computer_name = ""  # leave all blank for current computer, current user
-    computer_username = ""
-    computer_userdomain = ""
-    computer_password = ""
+    computer_name = ''
+    computer_username = ''
+    computer_userdomain = ''
+    computer_password = ''
 
-    action_id = "WallpyLogonTask"
+    action_id = 'WallpyLogonTask'
     action_workdir = os.path.dirname(os.path.abspath(__file__))
 
-    action_path = action_workdir + r"\Wallpaper.py"
+    action_path = action_workdir + r'\Wallpaper.exe'
     action_arguments = r''
-    author = "config_wallpy"
-    description = "Run Wallpaper.exe when the current user logs on"
-    task_id = "WallpyLogonTask"
+    author = 'qeqoos'
+    description = 'Run Wallpaper.exe when current user logs on'
+    task_id = 'WallpyLogonTask'
     task_hidden = False
-    username = ""
-    password = ""
+    username = ''
+    password = ''
 
     TASK_TRIGGER_LOGON = 9
     TASK_CREATE_OR_UPDATE = 6
     TASK_ACTION_EXEC = 0
     TASK_LOGON_INTERACTIVE_TOKEN = 3
 
-    scheduler = win32com.client.Dispatch("Schedule.Service")
+    scheduler = win32com.client.Dispatch('Schedule.Service')
     scheduler.Connect(computer_name or None, computer_username or None,
                       computer_userdomain or None, computer_password or None)
-    rootFolder = scheduler.GetFolder("\\")
+    rootFolder = scheduler.GetFolder('\\')
 
     taskDef = scheduler.NewTask(0)
     colTriggers = taskDef.Triggers
 
     trigger = colTriggers.Create(TASK_TRIGGER_LOGON)
-    trigger.Id = "LogonTriggerId"
+    trigger.Id = 'LogonTriggerId'
     trigger.UserId = os.environ.get('USERNAME')
 
     colActions = taskDef.Actions
@@ -204,12 +226,12 @@ def create_task(event):
     settings.Hidden = task_hidden
 
     result = rootFolder.RegisterTaskDefinition(
-        task_id, taskDef, TASK_CREATE_OR_UPDATE, "", "", TASK_LOGON_INTERACTIVE_TOKEN)
+        task_id, taskDef, TASK_CREATE_OR_UPDATE, '', '', TASK_LOGON_INTERACTIVE_TOKEN)
 
     # run the task once
     task = rootFolder.GetTask(task_id)
     task.Enabled = True
-    runningTask = task.Run("")
+    runningTask = task.Run('')
 
 
 create_task_but.bind('<Button-1>', create_task)
