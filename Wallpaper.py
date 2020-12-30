@@ -53,11 +53,17 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.setToolTip(f'Wallpy')
         menu = QtWidgets.QMenu(parent)
 
-        exit_ = menu.addAction("Exit")
+        open_config_app = menu.addAction('Configure wallpy')
+        open_config_app.triggered.connect(self.open_config)
+
+        exit_ = menu.addAction('Exit')
         exit_.triggered.connect(lambda: os._exit(1))
 
         menu.addSeparator()
         self.setContextMenu(menu)
+
+    def open_config(self):
+        os.system('config_wallpy.py')
 
 
 def tray():
