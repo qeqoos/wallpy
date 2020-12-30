@@ -192,7 +192,7 @@ def create_task(event):
     action_id = 'WallpyLogonTask'
     action_workdir = os.path.dirname(os.path.abspath(__file__))
 
-    action_path = action_workdir + r'\Wallpaper.exe'
+    action_path = action_workdir + r'\Wallpaper.py'
     action_arguments = r''
     author = 'qeqoos'
     description = 'Run Wallpaper.exe when current user logs on'
